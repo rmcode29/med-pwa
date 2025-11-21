@@ -9,7 +9,9 @@ body{font-family:Arial,sans-serif;background:#f2fff2;margin:0;padding:20px;displ
 .container{width:100%;max-width:380px;text-align:center;}
 h2,h3{text-align:center;}
 button{width:100%;padding:12px;margin:6px 0;border-radius:10px;font-size:18px;border:none;cursor:pointer;}
+#startSessionBtn{background:#00a03e;color:white;}
 #stopBtn{background:#cc0000;color:white;}
+#backBtn{background:#555;color:white;}
 #display{font-size:28px;margin:15px 0;height:40px;}
 #cycleCount{font-size:16px;margin-bottom:15px;}
 </style>
@@ -21,6 +23,7 @@ button{width:100%;padding:12px;margin:6px 0;border-radius:10px;font-size:18px;bo
 <div id="cycleCount">Cycles: 0</div>
 <button id="startSessionBtn">Start Session</button>
 <button id="stopBtn">Stop</button>
+<button id="backBtn">Back to Config</button>
 <h3 id="summaryText"></h3>
 </div>
 
@@ -103,6 +106,7 @@ async function startSession(){
 // Stop
 function stopSession(){
   running=false;
+  synth.cancel(); // stop any ongoing speech
 }
 
 // Summary
@@ -112,8 +116,16 @@ function showSummary(){
   document.getElementById("summaryText").innerText=`Completed Cycles: ${cycle}\nTotal Time: ${mins} min`;
 }
 
-document.getElementById("stopBtn").addEventListener("click",stopSession);
+// Event listeners
 document.getElementById("startSessionBtn").addEventListener("click",()=>startSession());
+document.getElementById("stopBtn").addEventListener("click",stopSession);
+document.getElementById("backBtn").addEventListener("click", ()=>{
+  if(running){
+    running=false;
+    synth.cancel();
+  }
+  window.location.href = "index.html"; // go back to config
+});
 </script>
 </body>
 </html>
