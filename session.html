@@ -19,6 +19,7 @@ button{width:100%;padding:12px;margin:6px 0;border-radius:10px;font-size:18px;bo
 <h2>Breathing Session</h2>
 <div id="display">Ready</div>
 <div id="cycleCount">Cycles: 0</div>
+<button id="startSessionBtn">Start Session</button>
 <button id="stopBtn">Stop</button>
 <h3 id="summaryText"></h3>
 </div>
@@ -84,6 +85,7 @@ async function startSession(){
   running=true;
   cycle=0;
   startTime=new Date();
+  document.getElementById("startSessionBtn").disabled=true;
 
   while(running){
     await countedPhase("In", inC);
@@ -111,9 +113,7 @@ function showSummary(){
 }
 
 document.getElementById("stopBtn").addEventListener("click",stopSession);
-
-// Start automatically on page load
-window.onload=startSession;
+document.getElementById("startSessionBtn").addEventListener("click",()=>startSession());
 </script>
 </body>
 </html>
