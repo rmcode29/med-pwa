@@ -1,137 +1,139 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Breathing Session</title>
 <style>
-body {
-  font-family: Arial;
-  padding: 20px;
-  background: #f0fffa;
-  text-align: center;
-}
-#status {
-  margin-top: 20px;
-  font-size: 32px;
-  font-weight: bold;
-}
-#cycle {
-  margin-top: 10px;
-  font-size: 20px;
-  color: #555;
-}
-button {
-  width: 100%;
-  padding: 16px;
-  margin: 12px 0;
-  font-size: 18px;
-  border-radius: 10px;
-  border: none;
-}
-#startBtn { background: #0077cc; color: white; }
-#stopBtn { background: #cc0000; color: white; }
-#backBtn { background: #666; color: white; }
+    body {
+        font-family: Arial, sans-serif;
+        background: #f2fff2;
+        margin: 0;
+        padding: 20px;
+        text-align: center;
+    }
+    h2 { margin-bottom: 10px; }
+    #display {
+        font-size: 40px;
+        font-weight: bold;
+        margin-top: 30px;
+    }
+    #cycleCount {
+        margin-top: 10px;
+        font-size: 18px;
+        color: #444;
+    }
+    button {
+        width: 90%;
+        padding: 15px;
+        font-size: 18px;
+        margin: 10px 0;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+    #startBtn { background: #00a03e; color: white; }
+    #stopBtn { background: #cc0000; color: white; }
+    #backBtn { background: #555; color: white; }
 </style>
 </head>
-
 <body>
 
 <h2>Breathing Session</h2>
 
-<div id="status">Ready</div>
-<div id="cycle">Cycle: 0</div>
+<div id="display">Ready</div>
+<div id="cycleCount">Cycles: 0</div>
 
 <button id="startBtn">Start Session</button>
 <button id="stopBtn">Stop</button>
-<button id="backBtn" onclick="goBack()">Back</button>
+<button id="backBtn">Back</button>
 
 <script>
+// ------------------------------
+//   WAKE LOCK (Prevent Screen Off)
+// ------------------------------
 let wakeLock = null;
-
 async function enableWakeLock() {
-  try {
-    wakeLock = await navigator.wakeLock.request("screen");
-  } catch (e) {
-    console.log("WakeLock not supported:", e);
-  }
+    try {
+        if ("wakeLock" in navigator) {
+            wakeLock = await navigator.wakeLock.request("screen");
+        }
+    } catch (e) { }
 }
 
-let running = false;
-let cycleCount = 0;
-
-// get URL parameters
-const url = new URLSearchParams(window.location.search);
-const inT = Number(url.get("in"));
-const holdT = Number(url.get("hold"));
-const outT = Number(url.get("out"));
-
+// ------------------------------
+//   SPEECH (Voice Style C)
+// ------------------------------
 function speak(text) {
-  const msg = new SpeechSynthesisUtterance(text);
-  msg.rate = 0.9;
-  msg.pitch = 1;
-  msg.volume = 1;
-  speechSynthesis.speak(msg);
+    const msg = new SpeechSynthesisUtterance(text);
+
+    // Choose a calm male voice if available
+    msg.voice = speechSynthesis.getVoices().find(v =>
+        v.name.toLowerCase().includes("male") ||
+        v.name.toLowerCase().includes("daniel") ||
+        v.name.toLowerCase().includes("english")
+    );
+
+    msg.rate = 0.85;   // slower calm tone
+    msg.pitch = 0.9;   // slightly deep
+    msg.volume = 1.0;
+
+    speechSynthesis.cancel();  // ensure clean playback
+    speechSynthesis.speak(msg);
 }
 
-async function runPhase(label, seconds) {
-  document.getElementById("status").innerText = label;
+// ------------------------------
+//   SESSION LOGIC
+// ------------------------------
+let running = false;
+let cycle = 0;
 
-  speak(label);
+async function startBreathing() {
+    if (running) return;
 
-  for (let i = 1; i <= seconds; i++) {
-    if (!running) return;
-    speak(i.toString());
-    await new Promise(r => setTimeout(r, 1000));
-  }
+    running = true;
+    cycle = 0;
+
+    enableWakeLock();
+
+    while (running) {
+
+        // IN — 7 sec
+        document.getElementById("display").innerText = "In";
+        speak("In");
+        await new Promise(r => setTimeout(r, 7000));
+        if (!running) break;
+
+        // HOLD — 7 sec
+        document.getElementById("display").innerText = "Hold";
+        speak("Hold");
+        await new Promise(r => setTimeout(r, 7000));
+        if (!running) break;
+
+        // OUT — 6 sec
+        document.getElementById("display").innerText = "Out";
+        speak("Out");
+        await new Promise(r => setTimeout(r, 6000));
+        if (!running) break;
+
+        cycle++;
+        document.getElementById("cycleCount").innerText = "Cycles: " + cycle;
+    }
 }
 
-async function startSession() {
-  if (running) return;
-
-  await enableWakeLock();
-
-  running = true;
-  cycleCount = 0;
-
-  const startTime = Date.now();
-
-  while (running) {
-    await runPhase("In", inT);
-    if (!running) break;
-
-    await runPhase("Hold", holdT);
-    if (!running) break;
-
-    await runPhase("Out", outT);
-    if (!running) break;
-
-    cycleCount++;
-    document.getElementById("cycle").innerText = "Cycle: " + cycleCount;
-  }
-
-  const endTime = Date.now();
-  const mins = Math.floor((endTime - startTime) / 60000);
-  const secs = Math.floor((endTime - startTime) / 1000) % 60;
-
-  window.location.href =
-    "summary.html?cycles=" + cycleCount +
-    "&min=" + mins +
-    "&sec=" + secs +
-    "&in=" + inT +
-    "&hold=" + holdT +
-    "&out=" + outT;
+function stopBreathing() {
+    running = false;
+    speechSynthesis.cancel();
+    document.getElementById("display").innerText = "Stopped";
 }
 
-function stopSession() {
-  running = false;
-}
+document.getElementById("startBtn").onclick = startBreathing;
+document.getElementById("stopBtn").onclick = stopBreathing;
 
-function goBack() {
-  window.location.href = "index.html";
-}
+document.getElementById("backBtn").onclick = () => {
+    stopBreathing();
+    window.location.href = "index.html";
+};
 
-document.getElementById("startBtn").onclick = startSession;
-document.getElementById("stopBtn").onclick = stopSession;
 </script>
 
 </body>
