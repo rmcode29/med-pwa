@@ -137,9 +137,13 @@ function stopBreathing() {
   document.getElementById("display").innerText = "Stopped";
   if (wakeLock) { wakeLock.release(); wakeLock = null; }
 
-  // Store cycles for summary
+  // Ensure cycles stored correctly
   localStorage.setItem("sessionCycles", cycle || 0);
-  location.href = "summary.html";
+
+  // Small delay to ensure storage is written
+  setTimeout(() => {
+    location.href = "summary.html";
+  }, 50); // 50ms delay is enough
 }
 
 // Back to index
