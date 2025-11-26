@@ -50,70 +50,79 @@
 <button id="backBtn" onclick="goBack()">Back</button>
 
 <script>
-/* --- iOS Safari / Chrome Voice Fix --- */
-let voicesReady = false;
-async function loadVoices() {
-  return new Promise(resolve => {
-    const v = speechSynthesis.getVoices();
-    if (v.length) {
-      voicesReady = true;
-      resolve();
-    } else {
-      speechSynthesis.onvoiceschanged = () => { voicesReady = true; resolve(); };
-    }
-  });
-}
+let running = false;
+let cycle = 0;
 
-/* --- Wake Lock to prevent screen from locking --- */
+// Default timings in seconds
+const IN_TIME = 7;
+const HOLD_TIME = 7;
+const OUT_TIME = 6;
+
+// Wake Lock to prevent screen sleep
 let wakeLock = null;
 async function enableWakeLock() {
   try {
     if ("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen");
-  } catch(e) { console.log("WakeLock not available:", e); }
+  } catch(e){ console.log("WakeLock unavailable:", e); }
 }
 document.addEventListener("visibilitychange", async () => {
-  if (wakeLock !== null && document.visibilityState === "visible") enableWakeLock();
+  if (wakeLock && document.visibilityState === "visible") enableWakeLock();
 });
 
-/* --- Speech function --- */
+// Load voices for iOS
+let voicesLoaded = false;
+async function loadVoices() {
+  return new Promise(resolve => {
+    let v = speechSynthesis.getVoices();
+    if (v.length) { voicesLoaded = true; resolve(); }
+    else speechSynthesis.onvoiceschanged = () => { voicesLoaded = true; resolve(); };
+  });
+}
+
+// Speak helper
 function speak(text) {
   const msg = new SpeechSynthesisUtterance(text);
   const voices = speechSynthesis.getVoices();
   if (voices.length > 0) msg.voice = voices[0];
-  msg.rate = 0.85;
+  msg.rate = 0.8;
   msg.pitch = 0.9;
   msg.volume = 1;
-  speechSynthesis.cancel();
   speechSynthesis.speak(msg);
 }
 
-/* --- Breathing session logic --- */
-let running = false;
-let cycle = 0;
-
+// Wait helper
 function wait(ms){ return new Promise(r => setTimeout(r, ms)); }
 
+// Counted phase: speak label once, then numbers
+async function countPhase(label, seconds) {
+  if (!running) return;
+  document.getElementById("display").innerText = label;
+  speak(label);
+  await wait(700); // slight pause after label
+
+  for (let i = 1; i <= seconds; i++) {
+    if (!running) break;
+    document.getElementById("display").innerText = `${label} ${i}`;
+    speak(`${i}`);
+    await wait(1000);
+  }
+}
+
+// Start session
 async function startBreathing() {
   if (running) return;
   running = true;
   cycle = 0;
-
   enableWakeLock();
 
   while (running) {
-    document.getElementById("display").innerText = "In";
-    speak("In");
-    await wait(7000);
+    await countPhase("In", IN_TIME);
     if (!running) break;
 
-    document.getElementById("display").innerText = "Hold";
-    speak("Hold");
-    await wait(7000);
+    await countPhase("Hold", HOLD_TIME);
     if (!running) break;
 
-    document.getElementById("display").innerText = "Out";
-    speak("Out");
-    await wait(6000);
+    await countPhase("Out", OUT_TIME);
     if (!running) break;
 
     cycle++;
@@ -121,20 +130,19 @@ async function startBreathing() {
   }
 }
 
-/* --- Stop Session --- */
+// Stop session
 function stopBreathing() {
   running = false;
   speechSynthesis.cancel();
   document.getElementById("display").innerText = "Stopped";
-
   if (wakeLock) { wakeLock.release(); wakeLock = null; }
 
-  // Go to summary page automatically
-  localStorage.setItem("sessionCycles", cycle);
+  // Store cycles for summary
+  localStorage.setItem("sessionCycles", cycle || 0);
   location.href = "summary.html";
 }
 
-/* --- Back to Index --- */
+// Back to index
 function goBack() {
   running = false;
   speechSynthesis.cancel();
@@ -142,12 +150,11 @@ function goBack() {
   location.href = "index.html";
 }
 
-/* --- Start button with iOS Voice fix --- */
+// Button events
 document.getElementById("startBtn").onclick = async () => {
   await loadVoices();
   startBreathing();
 };
-
 document.getElementById("stopBtn").onclick = stopBreathing;
 
 </script>

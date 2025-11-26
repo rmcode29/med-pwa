@@ -1,69 +1,63 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Session Summary</title>
 <style>
-body {
-  font-family: Arial;
-  padding: 20px;
-  background: #f7fff5;
-}
-button {
-  width: 100%;
-  padding: 16px;
-  margin: 12px 0;
-  font-size: 20px;
-  border-radius: 10px;
-  border: none;
-  background: #008844;
-  color: white;
-}
-.summaryBox {
-  padding: 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 0 10px #ccc;
-}
+  body {
+    font-family: Arial, sans-serif;
+    background: #f9f9f9;
+    margin: 0;
+    padding: 20px;
+    text-align: center;
+  }
+  h2 { margin-bottom: 20px; }
+  p { font-size: 20px; margin: 10px 0; }
+  button {
+    padding: 14px 20px;
+    margin-top: 20px;
+    font-size: 18px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: #008c3c;
+    color: white;
+  }
 </style>
 </head>
-
 <body>
 
 <h2>Session Summary</h2>
 
-<div class="summaryBox">
-  <p id="c1"></p>
-  <p id="c2"></p>
-  <p id="c3"></p>
-  <p id="c4"></p>
-  <p id="c5"></p>
-</div>
+<p id="cyclesText"></p>
+<p id="timeText"></p>
 
-<button onclick="goHome()">Start New Session</button>
+<button onclick="goBack()">Back to Start</button>
 
 <script>
-const url = new URLSearchParams(window.location.search);
+const IN_TIME = 7;   // seconds
+const HOLD_TIME = 7; // seconds
+const OUT_TIME = 6;  // seconds
 
-document.getElementById("c1").innerText =
-  "Total Cycles: " + url.get("cycles");
-
-document.getElementById("c2").innerText =
-  "Total Time: " + url.get("min") + "m " + url.get("sec") + "s";
-
-document.getElementById("c3").innerText =
-  "In: " + url.get("in") + " sec";
-
-document.getElementById("c4").innerText =
-  "Hold: " + url.get("hold") + " sec";
-
-document.getElementById("c5").innerText =
-  "Out: " + url.get("out") + " sec";
-
-function goHome() {
-  window.location.href = "index.html";
+function goBack() {
+  location.href = "index.html";
 }
-</script>
 
+// Get cycles from session
+let cycles = parseInt(localStorage.getItem("sessionCycles"));
+if (!cycles || isNaN(cycles)) cycles = 0;
+
+// Compute total time in seconds
+let totalSeconds = cycles * (IN_TIME + HOLD_TIME + OUT_TIME);
+
+// Convert to minutes:seconds
+let minutes = Math.floor(totalSeconds / 60);
+let seconds = totalSeconds % 60;
+
+document.getElementById("cyclesText").innerText = `Cycles completed: ${cycles}`;
+document.getElementById("timeText").innerText = `Total session time: ${minutes} min ${seconds} sec`;
+
+</script>
 </body>
 </html>
