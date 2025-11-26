@@ -1,45 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Breathing Session</title>
-<style>
- body {
-   font-family: Arial, sans-serif;
-   background: #f2fff2;
-   padding: 20px;
-   text-align: center;
-   margin: 0;
- }
- h2 {
-   margin-bottom: 10px;
- }
- #display {
-   font-size: 38px;
-   font-weight: bold;
-   margin-top: 30px;
- }
- #cycleCount {
-   margin-top: 10px;
-   font-size: 18px;
-   color: #444;
- }
- button {
-   width: 90%;
-   padding: 16px;
-   margin: 10px auto;
-   display: block;
-   font-size: 20px;
-   border-radius: 12px;
-   border: none;
-   cursor: pointer;
- }
- #startBtn { background: #008c3c; color: white; }
- #stopBtn { background: #cc0000; color: white; }
- #backBtn { background: #666; color: white; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Session Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #007bff;
+      color: white;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    audio {
+      margin-top: 20px;
+      width: 100%;
+    }
+  </style>
 </head>
-
 <body>
+  <div class="container">
+    <h1>Session Playback</h1>
 
-<h2>B
+    <p>Click the button below to play the session audio.</p>
+
+    <button onclick="playBeep()">Play Test Sound</button>
+
+    <audio id="sessionAudio" controls>
+      <!-- Replace this src with your actual session audio file -->
+      <source src="session.mp3" type="audio/mpeg" />
+      Your browser does not support the audio element.
+    </audio>
+
+  </div>
+
+  <script>
+    // Test beep tone generator so you know your audio system works
+    function playBeep() {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+
+      oscillator.type = "sine";
+      oscillator.frequency.value = 440;
+
+      oscillator.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      oscillator.start();
+      gainNode.gain.setValueAtTime(1, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1);
+
+      oscillator.stop(ctx.currentTime + 1);
+    }
+  </script>
+</body>
+</html>
