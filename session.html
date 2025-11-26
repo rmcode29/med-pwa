@@ -4,137 +4,42 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Breathing Session</title>
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #f2fff2;
-        margin: 0;
-        padding: 20px;
-        text-align: center;
-    }
-    h2 { margin-bottom: 10px; }
-    #display {
-        font-size: 40px;
-        font-weight: bold;
-        margin-top: 30px;
-    }
-    #cycleCount {
-        margin-top: 10px;
-        font-size: 18px;
-        color: #444;
-    }
-    button {
-        width: 90%;
-        padding: 15px;
-        font-size: 18px;
-        margin: 10px 0;
-        border: none;
-        border-radius: 10px;
-        cursor: pointer;
-    }
-    #startBtn { background: #00a03e; color: white; }
-    #stopBtn { background: #cc0000; color: white; }
-    #backBtn { background: #555; color: white; }
+ body {
+   font-family: Arial, sans-serif;
+   background: #f2fff2;
+   padding: 20px;
+   text-align: center;
+   margin: 0;
+ }
+ h2 {
+   margin-bottom: 10px;
+ }
+ #display {
+   font-size: 38px;
+   font-weight: bold;
+   margin-top: 30px;
+ }
+ #cycleCount {
+   margin-top: 10px;
+   font-size: 18px;
+   color: #444;
+ }
+ button {
+   width: 90%;
+   padding: 16px;
+   margin: 10px auto;
+   display: block;
+   font-size: 20px;
+   border-radius: 12px;
+   border: none;
+   cursor: pointer;
+ }
+ #startBtn { background: #008c3c; color: white; }
+ #stopBtn { background: #cc0000; color: white; }
+ #backBtn { background: #666; color: white; }
 </style>
 </head>
+
 <body>
 
-<h2>Breathing Session</h2>
-
-<div id="display">Ready</div>
-<div id="cycleCount">Cycles: 0</div>
-
-<button id="startBtn">Start Session</button>
-<button id="stopBtn">Stop</button>
-<button id="backBtn">Back</button>
-
-<script>
-// ------------------------------
-//   WAKE LOCK (Prevent Screen Off)
-// ------------------------------
-let wakeLock = null;
-async function enableWakeLock() {
-    try {
-        if ("wakeLock" in navigator) {
-            wakeLock = await navigator.wakeLock.request("screen");
-        }
-    } catch (e) { }
-}
-
-// ------------------------------
-//   SPEECH (Voice Style C)
-// ------------------------------
-function speak(text) {
-    const msg = new SpeechSynthesisUtterance(text);
-
-    // Choose a calm male voice if available
-    msg.voice = speechSynthesis.getVoices().find(v =>
-        v.name.toLowerCase().includes("male") ||
-        v.name.toLowerCase().includes("daniel") ||
-        v.name.toLowerCase().includes("english")
-    );
-
-    msg.rate = 0.85;   // slower calm tone
-    msg.pitch = 0.9;   // slightly deep
-    msg.volume = 1.0;
-
-    speechSynthesis.cancel();  // ensure clean playback
-    speechSynthesis.speak(msg);
-}
-
-// ------------------------------
-//   SESSION LOGIC
-// ------------------------------
-let running = false;
-let cycle = 0;
-
-async function startBreathing() {
-    if (running) return;
-
-    running = true;
-    cycle = 0;
-
-    enableWakeLock();
-
-    while (running) {
-
-        // IN — 7 sec
-        document.getElementById("display").innerText = "In";
-        speak("In");
-        await new Promise(r => setTimeout(r, 7000));
-        if (!running) break;
-
-        // HOLD — 7 sec
-        document.getElementById("display").innerText = "Hold";
-        speak("Hold");
-        await new Promise(r => setTimeout(r, 7000));
-        if (!running) break;
-
-        // OUT — 6 sec
-        document.getElementById("display").innerText = "Out";
-        speak("Out");
-        await new Promise(r => setTimeout(r, 6000));
-        if (!running) break;
-
-        cycle++;
-        document.getElementById("cycleCount").innerText = "Cycles: " + cycle;
-    }
-}
-
-function stopBreathing() {
-    running = false;
-    speechSynthesis.cancel();
-    document.getElementById("display").innerText = "Stopped";
-}
-
-document.getElementById("startBtn").onclick = startBreathing;
-document.getElementById("stopBtn").onclick = stopBreathing;
-
-document.getElementById("backBtn").onclick = () => {
-    stopBreathing();
-    window.location.href = "index.html";
-};
-
-</script>
-
-</body>
-</html>
+<h2>B
