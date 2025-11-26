@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session Summary</title>
+<style>
+body {
+  font-family: Arial;
+  padding: 20px;
+  background: #f7fff5;
+}
+button {
+  width: 100%;
+  padding: 16px;
+  margin: 12px 0;
+  font-size: 20px;
+  border-radius: 10px;
+  border: none;
+  background: #008844;
+  color: white;
+}
+.summaryBox {
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 0 10px #ccc;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Session Summary</h2>
+
+<div class="summaryBox">
+  <p id="c1"></p>
+  <p id="c2"></p>
+  <p id="c3"></p>
+  <p id="c4"></p>
+  <p id="c5"></p>
+</div>
+
+<button onclick="goHome()">Start New Session</button>
+
+<script>
+const url = new URLSearchParams(window.location.search);
+
+document.getElementById("c1").innerText =
+  "Total Cycles: " + url.get("cycles");
+
+document.getElementById("c2").innerText =
+  "Total Time: " + url.get("min") + "m " + url.get("sec") + "s";
+
+document.getElementById("c3").innerText =
+  "In: " + url.get("in") + " sec";
+
+document.getElementById("c4").innerText =
+  "Hold: " + url.get("hold") + " sec";
+
+document.getElementById("c5").innerText =
+  "Out: " + url.get("out") + " sec";
+
+function goHome() {
+  window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>

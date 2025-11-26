@@ -1,64 +1,55 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Yoga Breathing App - Config</title>
+<title>Breathing Setup</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f2fff2;margin:0;padding:20px;display:flex;justify-content:center;align-items:center;min-height:100vh;}
-.container{width:100%;max-width:380px;}
-h2{text-align:center;}
-input,select,button{width:100%;padding:10px;margin:6px 0;border-radius:8px;font-size:16px;}
-button{cursor:pointer;font-size:18px;}
-#startBtn{background:#00a03e;color:white;border:none;}
+body {
+  font-family: Arial;
+  padding: 20px;
+  background: #f0fff3;
+}
+input, button {
+  width: 100%;
+  padding: 14px;
+  margin: 10px 0;
+  font-size: 18px;
+  border-radius: 10px;
+  border: 1px solid #aaa;
+}
+button {
+  background: #009944;
+  color: white;
+  border: none;
+}
 </style>
 </head>
+
 <body>
-<div class="container">
-<h2>Configure Breathing Session</h2>
 
-<label>Preset Patterns</label>
-<select id="preset" onchange="applyPreset()">
-  <option value="custom">Custom</option>
-  <option value="box">Box Breathing (4-4-4)</option>
-  <option value="478">4-7-8 Breathing</option>
-  <option value="pranayama">Pranayama (6-3-6)</option>
-</select>
+<h2>Breathing Configuration</h2>
 
-<label>Breath In (seconds)</label>
-<input type="number" id="inCount" value="4">
+<label>In (seconds)</label>
+<input id="inTime" type="number" value="7">
 
 <label>Hold (seconds)</label>
-<input type="number" id="holdCount" value="2">
+<input id="holdTime" type="number" value="7">
 
-<label>Breath Out (seconds)</label>
-<input type="number" id="outCount" value="4">
+<label>Out (seconds)</label>
+<input id="outTime" type="number" value="6">
 
-<label>Sound Option</label>
-<select id="soundOption">
-  <option value="voice">Voice Guidance</option>
-  <option value="tone">Soft Tone</option>
-</select>
-
-<button id="startBtn">Start Session</button>
-</div>
+<button onclick="confirmConfig()">Confirm</button>
 
 <script>
-function applyPreset(){
-  const p=document.getElementById("preset").value;
-  if(p==='box'){inCount.value=4; holdCount.value=4; outCount.value=4;}
-  if(p==='478'){inCount.value=4; holdCount.value=7; outCount.value=8;}
-  if(p==='pranayama'){inCount.value=6; holdCount.value=3; outCount.value=6;}
-}
+function confirmConfig() {
+  const i = document.getElementById("inTime").value;
+  const h = document.getElementById("holdTime").value;
+  const o = document.getElementById("outTime").value;
 
-document.getElementById("startBtn").addEventListener("click",()=>{
-  const inC=document.getElementById("inCount").value;
-  const holdC=document.getElementById("holdCount").value;
-  const outC=document.getElementById("outCount").value;
-  const sound=document.getElementById("soundOption").value;
-  // Pass config via query params
-  window.location.href=`session.html?in=${inC}&hold=${holdC}&out=${outC}&sound=${sound}`;
-});
+  window.location.href =
+    "session.html?in=" + i + "&hold=" + h + "&out=" + o;
+}
 </script>
+
 </body>
 </html>
