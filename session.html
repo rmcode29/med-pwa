@@ -1,81 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Session Page</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background: #f9f9f9;
-    }
-    .container {
-      max-width: 800px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    h1 {
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
-    button {
-      padding: 12px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      background: #007bff;
-      color: white;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    audio {
-      margin-top: 20px;
-      width: 100%;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Breathing Session</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f2fff2;
+    margin: 0;
+    padding: 20px;
+    text-align: center;
+  }
+  h2 { margin-bottom: 10px; }
+  #display {
+    font-size: 38px;
+    font-weight: bold;
+    margin-top: 30px;
+  }
+  #cycleCount {
+    margin-top: 10px;
+    font-size: 18px;
+    color: #444;
+  }
+  button {
+    width: 90%;
+    padding: 16px;
+    margin: 10px auto;
+    display: block;
+    font-size: 20px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+  }
+  #startBtn { background: #008c3c; color: white; }
+  #stopBtn { background: #cc0000; color: white; }
+  #backBtn { background: #666; color: white; }
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>Session Playback</h1>
 
-    <p>Click the button below to play the session audio.</p>
+<h2>Breathing Session</h2>
 
-    <button onclick="playBeep()">Play Test Sound</button>
+<div id="display">Ready</div>
+<div id="cycleCount">Cycles: 0</div>
 
-    <audio id="sessionAudio" controls>
-      <!-- Replace this src with your actual session audio file -->
-      <source src="session.mp3" type="audio/mpeg" />
-      Your browser does not support the audio element.
-    </audio>
+<button id="startBtn">Start Session</button>
+<button id="stopBtn">Stop</button>
+<button id="backBtn" onclick="goBack()">Back</button>
 
-  </div>
-
-  <script>
-    // Test beep tone generator so you know your audio system works
-    function playBeep() {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-
-      oscillator.type = "sine";
-      oscillator.frequency.value = 440;
-
-      oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
-
-      oscillator.start();
-      gainNode.gain.setValueAtTime(1, ctx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1);
-
-      oscillator.stop(ctx.currentTime + 1);
+<script>
+/* --- iOS Safari / Chrome Voice Fix --- */
+let voicesReady = false;
+async function loadVoices() {
+  return new Promise(resolve => {
+    const v = speechSynthesis.getVoices();
+    if (v.length) {
+      voicesReady = true;
+      resolve();
+    } else {
+      speechSynthesis.onvoiceschanged = () => { voicesReady = true; resolve(); };
     }
-  </script>
+  });
+}
+
+/* --- Wake Lock to prevent screen from locking --- */
+let wakeLock = null;
+async function enableWakeLock() {
+  try {
+    if ("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen");
+  } catch(e) { console.log("WakeLock not available:", e); }
+}
+document.addEventListener("visibilitychange", async () => {
+  if (wakeLock !== null && document.visibilityState === "visible") enableWakeLock();
+});
+
+/* --- Speech function --- */
+function speak(text) {
+  const msg = new SpeechSynthesisUtterance(text);
+  const voices = speechSynthesis.getVoices();
+  if (voices.length > 0) msg.voice = voices[0];
+  msg.rate = 0.85;
+  msg.pitch = 0.9;
+  msg.volume = 1;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(msg);
+}
+
+/* --- Breathing session logic --- */
+let running = false;
+let cycle = 0;
+
+function wait(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+async function startBreathing() {
+  if (running) return;
+  running = true;
+  cycle = 0;
+
+  enableWakeLock();
+
+  while (running) {
+    document.getElementById("display").innerText = "In";
+    speak("In");
+    await wait(7000);
+    if (!running) break;
+
+    document.getElementById("display").innerText = "Hold";
+    speak("Hold");
+    await wait(7000);
+    if (!running) break;
+
+    document.getElementById("display").innerText = "Out";
+    speak("Out");
+    await wait(6000);
+    if (!running) break;
+
+    cycle++;
+    document.getElementById("cycleCount").innerText = "Cycles: " + cycle;
+  }
+}
+
+/* --- Stop Session --- */
+function stopBreathing() {
+  running = false;
+  speechSynthesis.cancel();
+  document.getElementById("display").innerText = "Stopped";
+
+  if (wakeLock) { wakeLock.release(); wakeLock = null; }
+
+  // Go to summary page automatically
+  localStorage.setItem("sessionCycles", cycle);
+  location.href = "summary.html";
+}
+
+/* --- Back to Index --- */
+function goBack() {
+  running = false;
+  speechSynthesis.cancel();
+  if (wakeLock) { wakeLock.release(); wakeLock = null; }
+  location.href = "index.html";
+}
+
+/* --- Start button with iOS Voice fix --- */
+document.getElementById("startBtn").onclick = async () => {
+  await loadVoices();
+  startBreathing();
+};
+
+document.getElementById("stopBtn").onclick = stopBreathing;
+
+</script>
 </body>
 </html>
